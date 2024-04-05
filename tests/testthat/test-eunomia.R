@@ -33,7 +33,7 @@ test_that("extractCdmToParquet on Eunomia", {
 })
 
 
-test_that("Custom covariate buider on Eunomia", {
+test_that("Custom covariate builder on Eunomia", {
   covariateSettings <- createCdmCovariateSettings(
     folder = rootFolder,
     windowStart = -365,
@@ -126,6 +126,11 @@ test_that("Predict on Eunomia", {
                                  maxCores = 1)
   expect_true(all(population$rowId %in% prediction$observation_period_id))
 })
+
+# test_that("PLP integration on eunomia" {
+#   
+#   
+# })
 
 
 # population <- population[order(population$rowId), ]

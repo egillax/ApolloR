@@ -7,31 +7,23 @@ targetId1 <- 301    # People aged 45-65 with a visit in 2013, no prior cancer
 outcomeId1 <- 298   # Lung cancer
 targetId2 <- 10460  # People aged 10- with major depressive disorder
 outcomeId2 <- 10461 # Bipolar disorder
-targetId3 <- 9938   # People aged 55=85 with a visit in 2012-2014, no prior dementia
+targetId3 <- 11931   # People aged 55=85 with a visit in 2012-2014, no prior dementia
 outcomeId3 <- 6243  # Dementia
 
-# CCAE
+# database
 connectionDetails <- DatabaseConnector::createConnectionDetails(
-  dbms = "redshift",
-  connectionString = keyring::key_get("redShiftConnectionStringOhdaCcae"),
-  user = keyring::key_get("redShiftUserName"),
-  password = keyring::key_get("redShiftPassword")
-)
-cdmDatabaseSchema <- "cdm_truven_ccae_v2633"
-cohortDatabaseSchema <- "scratch_mschuemi"
-cohortTable <- "apollo_test_cohorts"
-rootFolder <- "D:/GPM_CCAE"
-pretrainedModelFolder <- file.path(rootFolder, "model")
+    dbms = "duckdb",
+    server = "~/database/database.duckdb")
+cdmDatabaseSchema <- "main"
+cohortDatabaseSchema <- "cohorts"
+cohortTable <- "strategus_cohort_table"
+rootFolder <- "~/projects/preTrainingEHR/"
+preTrainedModel <- "model2"
+pretrainedModelFolder <- file.path(rootFolder, preTrainedModel)
+#
 
 # Get cohort definitions -------------------------------------------------------
-ROhdsiWebApi::authorizeWebApi(
-  baseUrl = Sys.getenv("baseUrl"),
-  authMethod = "windows")
-cohortDefinitionSet <- ROhdsiWebApi::exportCohortDefinitionSet(
-  cohortIds = c(targetId1, outcomeId1, targetId2, outcomeId2, targetId3, outcomeId3),
-  generateStats = TRUE,
-  baseUrl =Sys.getenv("baseUrl")
-)
+
 saveRDS(cohortDefinitionSet, "extras/eval/cohortDefinitionSet.rds")
 
 # Generate cohorts -------------------------------------------------------------
@@ -54,9 +46,9 @@ DatabaseConnector::disconnect(connection)
 
 #  Extract data ----------------------------------------------------------------
 # Focusing on example 2 for now:
-targetId <- targetId2
-outcomeId <- outcomeId2
-predictionFolder <- file.path(rootFolder, "pred2")
+targetId <- targetId3
+outcomeId <- outcomeId3
+predictionFolder <- file.path(rootFolder, "pred3")
 dir.create(predictionFolder)
 
 # Get the target cohort and their labels (PLP normaly does this)
@@ -78,7 +70,7 @@ LEFT JOIN (
 ) outcome_cohort
   ON target_cohort.subject_id = outcome_cohort.subject_id
     AND target_cohort.cohort_start_date <= outcome_date
-    AND DATEADD(DAY, 365, target_cohort.cohort_start_date) >= outcome_date
+    AND DATEADD(DAY, 5*365, target_cohort.cohort_start_date) >= outcome_date
 WHERE target_cohort.cohort_definition_id = @target_id;
 "
 population <- DatabaseConnector::renderTranslateQuerySql(
@@ -142,7 +134,7 @@ FeatureExtraction::saveCovariateData(covariateData2, file.path(predictionFolder,
 DatabaseConnector::disconnect(connection)
 
 # Train models -----------------------------------------------------------------
-predictionFolder <- file.path(rootFolder, "pred2")
+predictionFolder <- file.path(rootFolder, "pred3")
 sets <- readRDS(file.path(predictionFolder, "Sets.rds"))
 
 trainSet <- sets %>%

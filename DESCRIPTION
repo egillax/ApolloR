@@ -9,6 +9,7 @@ Description: The R companion of Assessment of Pre-trained Observational Large Lo
 Depends:
   DatabaseConnector (>= 6.1.0)
 Imports:
+  PatientLevelPrediction (>= 6.3.7),
   SqlRender (>= 1.13.0),
   rlang,
   dplyr,
