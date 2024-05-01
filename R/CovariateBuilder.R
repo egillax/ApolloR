@@ -68,7 +68,8 @@ getDbCdmCovariateData <- function(connection,
                                   cohortIds = -1,
                                   rowIdField = "subject_id",
                                   covariateSettings,
-                                  aggregated = FALSE) {
+                                  aggregated = FALSE,
+                                  ...) {
   if (aggregated) {
     stop("Aggregation not supported")
   }
