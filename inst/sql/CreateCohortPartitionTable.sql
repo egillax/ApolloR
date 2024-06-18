@@ -5,10 +5,10 @@ DROP TABLE IF EXISTS #partition_table;
 SELECT row_id AS observation_period_id,
   observation_period.person_id,
   CASE 
-    WHEN DATEADD(DAY, @window_start, cohort_start_date) < observation_period_start_date THEN observation_period_start_date
-    ELSE DATEADD(DAY, @window_start, cohort_start_date) 
+    WHEN CAST(DATEADD(DAY, @window_start, cohort_start_date) AS DATE) < observation_period_start_date THEN observation_period_start_date
+    ELSE CAST(DATEADD(DAY, @window_start, cohort_start_date) AS DATE)
   END AS observation_period_start_date,
-  DATEADD(DAY, @window_end, cohort_start_date) AS observation_period_end_date,
+  CAST(DATEADD(DAY, @window_end, cohort_start_date) AS DATE) AS observation_period_end_date,
   rn % @partitions + 1 AS partition_id
 INTO #partition_table
 FROM (
