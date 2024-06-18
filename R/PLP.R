@@ -1,4 +1,3 @@
-
 #' Apollo Finetuner
 #' @param numEpochs Number of epochs to train the model.
 #' @param numFreezeEpochs Number of epochs to freeze the pretrained model.
@@ -86,6 +85,7 @@ createApolloSimpleModel <- function(numEpochs = 1,
                                     weightDecay = 1e-5,
                                     batchSize = 512,
                                     personSequenceFolder = NULL,
+                                    embeddingSize = 256L,
                                     maxCores = 1,
                                     device = "cuda",
                                     maxSequenceLength = 512L
@@ -129,8 +129,9 @@ createApolloSimpleModel <- function(numEpochs = 1,
                          visit_concept_embedding = FALSE,
                          visit_order_embedding = FALSE,
                          segment_embedding = FALSE,
-                         age_embedding = FALSE,
-                         date_embedding = FALSE
+                         age_embedding = TRUE,
+                         date_embedding = FALSE,
+                         embedding_size = embeddingSize
                          ),
     param = param,
     saveType = "file",
@@ -191,6 +192,7 @@ finetune <- function(
       output_folder = workingDir,
       pretrained_model_folder = modelSettings$modelFolder,
       batch_size = as.integer(modelSettings$batchsize),
+      device  = modelSettings$device,
       checkpoint_every = as.integer(1),
       writer = "json"
     ),
@@ -222,6 +224,7 @@ finetune <- function(
   if (modelSettings$modelType == "Simple") {
     trainModelSettings$learning_objectives$simple_regression_model <- TRUE
   }
+  
   yamlFileName <- tempfile("model_trainer", fileext = ".yaml")
   on.exit(unlink(yamlFileName))
   yaml::write_yaml(trainModelSettings,
@@ -374,6 +377,7 @@ finetunePredict <- function(plpModel,
       output_folder = workingDir,
       pretrained_model_folder = modelSettings$modelFolder,
       batch_size = as.integer(modelSettings$batchsize),
+      device = modelSettings$device,
       checkpoint_every = as.integer(1),
       writer = "json",
       finetuned_epoch = as.integer(epoch),
@@ -441,6 +445,7 @@ predictValidation <- function(workingDir,
         output_folder = workingDir,
         pretrained_model_folder = modelSettings$modelFolder,
         batch_size = as.integer(modelSettings$batchsize),
+        device = modelSettings$device,
         checkpoint_every = as.integer(1),
         writer = "json",
         finetuned_epoch = as.integer(epoch),
